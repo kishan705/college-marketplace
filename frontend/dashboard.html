@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - CampusMarket</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Auth Guard: Redirects if not logged in -->
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <header class="main-header">
+        <a href="index.html" class="logo">🎓 CampusMarket</a>
+        <div class="header-search-bar">
+            <input type="text" placeholder="Search for laptops, books, bikes..." id="searchInput" onkeyup="handleSearchInput(event)">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+        <div class="header-actions">
+            <button id="theme-switcher">🌙</button>
+            <a href="dashboard.html" id="profileLink" class="profile-icon" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <button class="btn" id="authButton" onclick="openModal('loginModal')">Sign In</button>
+        </div>
+    </header>
+    <nav class="sub-navbar">
+        <a href="index.html">Home</a>
+        <a href="map-demo.html">Map View</a>
+        <a href="chat.html">Chats</a>
+        <a href="#" onclick="openModal('sellModal')">Sell Item</a>
+    </nav>
+
+    <div class="container">
+        <h1>Welcome, <span id="userName">...</span>!</h1>
+        <p>This is your dashboard. You can manage your profile and product listings here.</p>
+
+        <section class="profile-info" style="background: var(--bg-primary); padding: 2rem; border-radius: 16px; margin-top: 2rem;">
+            <h2>Your Profile</h2>
+            <p><strong>Email:</strong> <span id="userEmail">...</span></p>
+            <p><strong>College:</strong> <span id="userCollege">...</span></p>
+            <p><strong>Phone:</strong> <span id="userPhone">...</span></p>
+        </section>
+
+        <section class="products" style="margin-top: 3rem; background: none; padding: 0;">
+            <h2>My Product Listings</h2>
+            <div class="product-grid" id="myProductsGrid">
+                <!-- User's products will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Sell Item Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('sellModal')">&times;</span>
+            <h2>List Your Item</h2>
+            <form id="sellForm">
+                <div class="form-group">
+                    <label>Product Title</label>
+                    <input type="text" name="title" placeholder="e.g., MacBook Pro 2019" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Books">Books</option>
+                        <option value="Bike">Bike</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" placeholder="Describe your item..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" name="price" placeholder="Enter price" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="isNegotiable" id="negotiableDashboard">
+                    <label for="negotiableDashboard">Price is negotiable</label>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" name="college" id="sellCollegeName" placeholder="Start typing your college name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Upload Images</label>
+                    <input type="file" accept="image/*" multiple>
+                </div>
+                 <button type="submit" class="btn-primary">List Item</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="auth.js"></script>
+    <script src="product.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) { event.target.classList.remove('active'); } }
+        
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            window.location.href = `index.html?q=${encodeURIComponent(query)}`;
+        }
+        function handleSearchInput(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+            loadMyProducts();
+            loadGoogleMapsForAutocomplete();
+        });
+
+        const token = getAuthToken();
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/users/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.user) {
+                    document.getElementById('userName').textContent = data.user.name;
+                    document.getElementById('userEmail').textContent = data.user.email;
+                    document.getElementById('userCollege').textContent = data.user.college;
+                    document.getElementById('userPhone').textContent = data.user.phone;
+                } else {
+                    throw new Error(data.error || 'Failed to load profile');
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                logout();
+            }
+        }
+
+        async function loadMyProducts() {
+            try {
+                const response = await fetch('/api/users/my-products', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                const grid = document.getElementById('myProductsGrid');
+
+                if (response.ok && data.products) {
+                    if (data.products.length === 0) {
+                        grid.innerHTML = '<p>You have not listed any products yet.</p>';
+                        return;
+                    }
+                    
+                    grid.innerHTML = data.products.map(product => `
+                        <a href="product.html?id=${product._id}" style="text-decoration: none; color: inherit;">
+                            <div class="product-card">
+                                <div class="product-image">${getCategoryIcon(product.category)}</div>
+                                <div class="product-info">
+                                    <div class="product-title">${product.title}</div>
+                                    <div class="product-price">₹${product.price.toLocaleString()}</div>
+                                    <div class="product-status" style="font-weight: bold; color: ${product.status === 'Available' ? 'var(--accent-primary)' : '#dc3545'}">${product.status}</div>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                } else {
+                    throw new Error(data.error || 'Failed to load products');
+                }
+            } catch (error) {
+                console.error('Error loading my products:', error);
+                alert('Could not load your products.');
+            }
+        }
+        
+        async function loadGoogleMapsForAutocomplete() {
+            try {
+                const res = await fetch('/api/config/maps-key');
+                if (!res.ok) return;
+                const data = await res.json();
+                const apiKey = data.apiKey;
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') return;
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading Google Maps for autocomplete:', error);
+            }
+        }
+
+        function initAutocomplete() {
+            const input = document.getElementById('sellCollegeName');
+            if (input) {
+                const autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['university', 'school'],
+                    componentRestrictions: { 'country': 'in' },
+                    fields: ['name']
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+

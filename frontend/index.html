@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusMarket - Buy & Sell College Essentials</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <a href="index.html" class="logo">🎓 CampusMarket</a>
+        
+        <div class="header-search-bar">
+            <input type="text" placeholder="Search for laptops, books, bikes..." id="searchInput" onkeyup="handleSearchInput(event)">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+
+        <div class="header-actions">
+            <button id="theme-switcher">🌙</button>
+            <a href="dashboard.html" id="profileLink" class="profile-icon" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <button class="btn" id="authButton" onclick="openModal('loginModal')">Sign In</button>
+        </div>
+    </header>
+
+    <nav class="sub-navbar">
+        <!-- No "Home" link on the homepage itself -->
+        <a href="map-demo.html">Map View</a>
+        <a href="chat.html">Chats</a>
+        <a href="#" onclick="openModal('sellModal')">Sell Item</a>
+        <!-- The Dashboard link will be added here by auth.js when logged in -->
+    </nav>
+
+    <section class="intro-banner">
+        <h1>Buy & Sell Within Your Campus</h1>
+        <p>Connect with students from your college. Trade books, laptops, bikes & more!</p>
+    </section>
+
+    <section class="categories">
+        <div class="categories-scroll-container">
+            <div class="category-item" onclick="filterCategory('Laptops')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>
+                </div>
+                <span>Laptops</span>
+            </div>
+            <div class="category-item" onclick="filterCategory('Books')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </div>
+                <span>Books</span>
+            </div>
+            <div class="category-item" onclick="filterCategory('Bikes')">
+                <div class="category-icon-wrapper">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="18.5" cy="17.5" r="3.5"></circle><path d="M15 6l-4 4 4 4"></path><path d="M5 17.5h14"></path></svg>
+                </div>
+                <span>Bikes</span>
+            </div>
+            <div class="category-item" onclick="filterCategory('Electronics')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                </div>
+                <span>Electronics</span>
+            </div>
+            <div class="category-item" onclick="filterCategory('Stationery')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                </div>
+                <span>Stationery</span>
+            </div>
+            <div class="category-item" onclick="filterCategory('Furniture')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V5H4v4"></path><path d="M2 11h20"></path><path d="M18 11v8h2"></path><path d="M4 11v8H2"></path></svg>
+                </div>
+                <span>Furniture</span>
+            </div>
+             <div class="category-item" onclick="filterCategory('Clothing')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 0-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+                </div>
+                <span>Clothing</span>
+            </div>
+             <div class="category-item" onclick="filterCategory('Sports')">
+                <div class="category-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="12" x2="12" y2="12"></line><line x1="12" y1="12" x2="18" y2="12" transform="rotate(60 12 12)"></line><line x1="12" y1="12" x2="18" y2="12" transform="rotate(120 12 12)"></line><line x1="12" y1="12" x2="18" y2="12" transform="rotate(180 12 12)"></line><line x1="12" y1="12" x2="18" y2="12" transform="rotate(240 12 12)"></line><line x1="12" y1="12" x2="18" y2="12" transform="rotate(300 12 12)"></line></svg>
+                </div>
+                <span>Sports</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="products">
+        <h2>Products</h2>
+        <div class="product-grid" id="productGrid">
+            <p>Loading products...</p>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Sign In</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" placeholder="e.g., your.name@gmail.com" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="Enter password" id="loginPassword">
+            </div>
+            <button class="btn-primary" id="loginButton">Sign In</button>
+            <button class="btn-secondary" onclick="switchToSignup()">New User? Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('signupModal')">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Your full name" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label>Your Email</label>
+                    <input type="email" placeholder="e.g., your.name@gmail.com" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" placeholder="10-digit number" id="signupPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" placeholder="e.g., IIT BHU Varanasi" id="signupCollege" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="At least 6 characters" id="signupPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+                <button type="button" class="btn-secondary" onclick="switchToLogin()">Already have an account? Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Item Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('sellModal')">&times;</span>
+            <h2>List Your Item</h2>
+            <form id="sellForm">
+                <div class="form-group">
+                    <label>Product Title</label>
+                    <input type="text" name="title" placeholder="e.g., MacBook Pro 2019" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Books">Books</option>
+                        <option value="Bike">Bike</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" placeholder="Describe your item..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" name="price" placeholder="Enter price" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="isNegotiable" id="negotiable">
+                    <label for="negotiable">Price is negotiable</label>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" name="college" id="sellCollegeName" placeholder="Start typing your college name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Upload Images</label>
+                    <input type="file" accept="image/*" multiple>
+                </div>
+                <button type="submit" class="btn-primary">List Item</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 CampusMarket. Made for College Students.</p>
+    </footer>
+
+
+    <script src="auth.js"></script>
+    <script src="product.js"></script>
+    <script src="theme.js"></script>
+    
+    <script>
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function switchToSignup() { closeModal('loginModal'); openModal('signupModal'); }
+        function switchToLogin() { closeModal('signupModal'); openModal('loginModal'); }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) { event.target.classList.remove('active'); } }
+
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            loadAllProducts(query); 
+        }
+
+        function filterCategory(category) {
+            document.getElementById('searchInput').value = ''; 
+            loadAllProducts('', category);
+        }
+
+        function handleSearchInput(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            } else if (event.target.value === '') {
+                loadAllProducts();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for search query in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const query = urlParams.get('q');
+            if (query) {
+                document.getElementById('searchInput').value = query;
+                loadAllProducts(query);
+            }
+
+            loadGoogleMapsForAutocomplete();
+        });
+
+        async function loadGoogleMapsForAutocomplete() {
+            try {
+                const res = await fetch('/api/config/maps-key');
+                if (!res.ok) return;
+                const data = await res.json();
+                const apiKey = data.apiKey;
+
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+                    console.warn('Google Maps API key is not configured. Autocomplete will not work.');
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading Google Maps for autocomplete:', error);
+            }
+        }
+
+        function initAutocomplete() {
+            const input = document.getElementById('sellCollegeName');
+            if (input) {
+                const autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['university', 'school'],
+                    componentRestrictions: { 'country': 'in' },
+                    fields: ['name']
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+

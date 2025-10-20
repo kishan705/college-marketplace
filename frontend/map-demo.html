@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Marketplace - Location Search</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <a href="index.html" class="logo">🎓 CampusMarket</a>
+        <div class="header-search-bar">
+            <input type="text" placeholder="Search for laptops, books, bikes..." id="searchInput" onkeyup="handleSearchInput(event)">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+        <div class="header-actions">
+            <button id="theme-switcher">🌙</button>
+            <a href="dashboard.html" id="profileLink" class="profile-icon" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <button class="btn" id="authButton" onclick="openModal('loginModal')">Sign In</button>
+        </div>
+    </header>
+    <nav class="sub-navbar">
+        <a href="index.html">Home</a>
+        <a href="map-demo.html">Map View</a>
+        <a href="chat.html">Chats</a>
+        <a href="#" onclick="openModal('sellModal')">Sell Item</a>
+    </nav>
+
+    <div class="container">
+        <div class="alert" id="infoAlert" style="display: none; margin-top: 1rem;">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <div class="layout" style="margin-top: 2rem;">
+            <div class="sidebar">
+                <h3>🔍 Search Controls</h3>
+                
+                <div class="form-group">
+                    <label>Your College</label>
+                    <input 
+                        type="text" 
+                        id="collegeDisplay" 
+                        placeholder="Login to see your college"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Search Radius</label>
+                    <select id="radiusSelect" onchange="updateRadius()">
+                        <option value="2">2 km</option>
+                        <option value="5">5 km</option>
+                        <option value="10" selected>10 km</option>
+                        <option value="20">20 km</option>
+                        <option value="50">50 km</option>
+                    </select>
+                </div>
+
+                <button class="btn-secondary" onclick="manualGeocodeAndSearch()" id="findProductsBtn">
+                    Find College & Products
+                </button>
+                
+                <button class="btn" onclick="getCurrentLocation()" id="currentLocationBtn">
+                    📍 Use My Current Location
+                </button>
+
+
+                <div class="info-section">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--accent-primary);">Your Location</h4>
+                    <div class="info-item">
+                        <span class="info-label">Latitude:</span>
+                        <span class="info-value" id="latDisplay">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Longitude:</span>
+                        <span class="info-value" id="lngDisplay">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Radius:</span>
+                        <span class="info-value" id="radiusDisplay">10 km</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Products Found:</span>
+                        <span class="info-value" id="productCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <div class="products-section">
+            <h3>📦 Products Near You</h3>
+            <div class="products-grid" id="productsGrid">
+                <p style="text-align: center; color: var(--text-secondary); grid-column: 1/-1;">
+                    Login and set your location to see nearby products
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Sign In</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" placeholder="e.g., your.name@gmail.com" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="Enter password" id="loginPassword">
+            </div>
+            <button class="btn-primary" id="loginButton">Sign In</button>
+            <button class="btn-secondary" onclick="switchToSignup()">New User? Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('signupModal')">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                 <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Your full name" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label>Your Email</label>
+                    <input type="email" placeholder="e.g., your.name@gmail.com" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" placeholder="10-digit number" id="signupPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" placeholder="e.g., IIT BHU Varanasi" id="signupCollege" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="At least 6 characters" id="signupPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+                <button type="button" class="btn-secondary" onclick="switchToLogin()">Already have an account? Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Item Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('sellModal')">&times;</span>
+            <h2>List Your Item</h2>
+            <form id="sellForm">
+                <div class="form-group">
+                    <label>Product Title</label>
+                    <input type="text" name="title" placeholder="e.g., MacBook Pro 2019" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Books">Books</option>
+                        <option value="Bike">Bike</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" placeholder="Describe your item..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" name="price" placeholder="Enter price" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="isNegotiable" id="negotiableMap">
+                    <label for="negotiableMap">Price is negotiable</label>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" name="college" id="sellCollegeName" placeholder="Start typing your college name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Upload Images</label>
+                    <input type="file" accept="image/*" multiple>
+                </div>
+                 <button type="submit" class="btn-primary">List Item</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="product.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        let map;
+        let userMarker;
+        let radiusCircle;
+        let productMarkers = [];
+        let userLocation = null;
+        let searchRadius = 10;
+        let allProducts = [];
+
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function switchToSignup() { closeModal('loginModal'); openModal('signupModal'); }
+        function switchToLogin() { closeModal('signupModal'); openModal('loginModal'); }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) { event.target.classList.remove('active'); } }
+        
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            window.location.href = `index.html?q=${encodeURIComponent(query)}`;
+        }
+        function handleSearchInput(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            }
+        }
+
+        function displayInfo(message, isError = false) {
+            const alertBox = document.getElementById('infoAlert');
+            alertBox.innerHTML = `<strong>${message}</strong>`;
+            alertBox.style.display = 'block';
+            if (isError) {
+                alertBox.style.background = '#f8d7da';
+                alertBox.style.borderColor = '#f5c6cb';
+                alertBox.style.color = '#721c24';
+            } else {
+                alertBox.style.background = '#d1ecf1';
+                alertBox.style.borderColor = '#bee5eb';
+                alertBox.style.color = '#0c5460';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePage();
+            loadGoogleMapsForAutocomplete();
+        });
+
+        async function initializePage() {
+            const token = getAuthToken();
+            if (!token) {
+                document.getElementById('authButton').onclick = () => openModal('loginModal');
+                displayInfo('Please log in to see products from your college.');
+                loadGoogleMapsScript();
+                return;
+            }
+
+            try {
+                const profileRes = await fetch('/api/users/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const profileData = await profileRes.json();
+                if (!profileRes.ok) throw new Error(profileData.error || 'Failed to fetch profile');
+
+                const collegeName = profileData.user.college;
+                document.getElementById('collegeDisplay').value = collegeName;
+
+                const productsRes = await fetch('/api/products');
+                const productsData = await productsRes.json();
+                if (productsData.success) {
+                    allProducts = productsData.products;
+                }
+
+                loadGoogleMapsScript(collegeName);
+
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                displayInfo('Could not load user data. Please try again.', true);
+                loadGoogleMapsScript();
+            }
+        }
+
+        async function loadGoogleMapsScript(collegeNameToGeocode = null) {
+            try {
+                const res = await fetch('/api/config/maps-key');
+                const data = await res.json();
+                const apiKey = data.apiKey;
+
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+                    throw new Error('Google Maps API key is missing from backend .env file.');
+                }
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geocoding&callback=initMap`;
+                script.async = true;
+                script.defer = true;
+                
+                window.collegeNameToGeocode = collegeNameToGeocode; 
+                document.head.appendChild(script);
+
+            } catch (error) {
+                console.error('Error loading Google Maps script:', error);
+                displayInfo(error.message, true);
+            }
+        }
+
+        function initMap() {
+            const defaultCenter = { lat: 20.5937, lng: 78.9629 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 5,
+                center: defaultCenter,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+            
+            if (window.collegeNameToGeocode) {
+                geocodeCollege(window.collegeNameToGeocode);
+            }
+        }
+        
+        function manualGeocodeAndSearch() {
+            const collegeName = document.getElementById('collegeDisplay').value;
+            if (!collegeName) {
+                displayInfo('Please enter a college name.', true);
+                return;
+            }
+            geocodeCollege(collegeName);
+        }
+
+        function geocodeCollege(collegeName) {
+            displayInfo(`Finding "${collegeName}" on the map...`);
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ 'address': collegeName }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    userLocation = {
+                        lat: results[0].geometry.location.lat(),
+                        lng: results[0].geometry.location.lng()
+                    };
+                    updateLocationDisplay();
+                    map.setCenter(userLocation);
+                    addUserMarker(results[0].formatted_address);
+                    addRadiusCircle();
+                    
+                    document.getElementById('findProductsBtn').disabled = false;
+                    searchNearby();
+                    document.getElementById('infoAlert').style.display = 'none';
+                } else {
+                    displayInfo(`Could not find location for: "${collegeName}". Please try a different name (e.g., "IIT Varanasi").`, true);
+                    document.getElementById('findProductsBtn').disabled = false;
+                }
+            });
+        }
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                displayInfo('Getting your current location...');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        updateLocationDisplay();
+                        map.setCenter(userLocation);
+                        addUserMarker('Your Current Location');
+                        addRadiusCircle();
+                        searchNearby();
+                        document.getElementById('infoAlert').style.display = 'none';
+                        document.getElementById('collegeDisplay').value = 'My Current Location';
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        displayInfo(`Error getting location: ${error.message}`, true);
+                    }
+                );
+            } else {
+                displayInfo('Geolocation is not supported by your browser.', true);
+            }
+        }
+
+        function addUserMarker(title = 'Your Location') {
+            if (userMarker) userMarker.setMap(null);
+            userMarker = new google.maps.Marker({
+                position: userLocation,
+                map: map,
+                title: title,
+                icon: { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' },
+                animation: google.maps.Animation.DROP
+            });
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 10px;"><strong>${title}</strong></div>`
+            });
+            userMarker.addListener('click', () => infoWindow.open(map, userMarker));
+        }
+
+        function addRadiusCircle() {
+            if (radiusCircle) radiusCircle.setMap(null);
+            radiusCircle = new google.maps.Circle({
+                map: map,
+                center: userLocation,
+                radius: searchRadius * 1000,
+                fillColor: '#667eea',
+                fillOpacity: 0.15,
+                strokeColor: '#667eea',
+                strokeOpacity: 0.8,
+                strokeWeight: 2
+            });
+            map.fitBounds(radiusCircle.getBounds());
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function searchNearby() {
+            if (!userLocation) {
+                displayInfo('Please set a location first by using the "Find College & Products" button.', true);
+                return;
+            }
+            if (!allProducts || allProducts.length === 0) {
+                 displayProducts([]);
+                 return;
+            }
+
+            productMarkers.forEach(marker => marker.setMap(null));
+            productMarkers = [];
+            
+            const nearbyProducts = allProducts.map(product => {
+                const distance = calculateDistance(
+                    userLocation.lat,
+                    userLocation.lng,
+                    product.location.coordinates[1],
+                    product.location.coordinates[0]
+                );
+                return { ...product, distance };
+            }).filter(product => product.distance <= searchRadius)
+              .sort((a, b) => a.distance - b.distance);
+
+            nearbyProducts.forEach(product => {
+                const position = { lat: product.location.coordinates[1], lng: product.location.coordinates[0] };
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: product.title,
+                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' },
+                    animation: google.maps.Animation.DROP
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px; min-width: 200px;">
+                            <h3 style="margin: 0 0 8px 0; color: #667eea;">${product.title}</h3>
+                            <p style="margin: 5px 0; font-size: 1.2rem; font-weight: bold; color: #667eea;">₹${product.price.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>📍</strong> ${product.college}</p>
+                            <p style="margin: 5px 0;"><strong>📏</strong> ${product.distance.toFixed(2)} km away</p>
+                            <p style="margin: 5px 0;"><strong>👤</strong> ${product.seller.name}</p>
+                        </div>
+                    `
+                });
+                marker.addListener('click', () => infoWindow.open(map, marker));
+                productMarkers.push(marker);
+            });
+
+            document.getElementById('productCount').textContent = nearbyProducts.length;
+            displayProducts(nearbyProducts);
+        }
+
+        function displayProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: var(--text-secondary); grid-column: 1/-1;">No products found within your radius. Try increasing the search radius!</p>';
+                return;
+            }
+            grid.innerHTML = products.map(product => `
+                <a href="product.html?id=${product._id}" style="text-decoration: none; color: inherit;">
+                    <div class="product-card" onclick="focusOnProduct(${product.location.coordinates[1]}, ${product.location.coordinates[0]})">
+                        <div class="product-image">${getCategoryIcon(product.category)}</div>
+                        <div class="product-info">
+                            <div class="product-title">${product.title}</div>
+                            <div class="product-price">₹${product.price.toLocaleString()}</div>
+                            <div class="product-distance">📏 ${product.distance.toFixed(2)} km away</div>
+                            <div>📍 ${product.college}</div>
+                            <div>👤 Seller: ${product.seller.name}</div>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function focusOnProduct(lat, lng) {
+            map.setCenter({ lat, lng });
+            map.setZoom(16);
+        }
+
+        function updateRadius() {
+            searchRadius = parseInt(document.getElementById('radiusSelect').value);
+            document.getElementById('radiusDisplay').textContent = searchRadius + ' km';
+            if (userLocation) {
+                addRadiusCircle();
+                searchNearby();
+            }
+        }
+
+        function updateLocationDisplay() {
+            document.getElementById('latDisplay').textContent = userLocation.lat.toFixed(6);
+            document.getElementById('lngDisplay').textContent = userLocation.lng.toFixed(6);
+        }
+
+        async function loadGoogleMapsForAutocomplete() {
+            try {
+                const res = await fetch('/api/config/maps-key');
+                if (!res.ok) return;
+                const data = await res.json();
+                const apiKey = data.apiKey;
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') return;
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading Google Maps for autocomplete:', error);
+            }
+        }
+
+        function initAutocomplete() {
+            const input = document.getElementById('sellCollegeName');
+            if (input) {
+                const autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['university', 'school'],
+                    componentRestrictions: { 'country': 'in' },
+                    fields: ['name']
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+

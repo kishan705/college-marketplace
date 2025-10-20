@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - CampusMarket</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Auth Guard -->
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <header class="main-header">
+        <a href="index.html" class="logo">🎓 CampusMarket</a>
+        <div class="header-search-bar">
+            <input type="text" placeholder="Search for laptops, books, bikes..." id="searchInput" onkeyup="handleSearchInput(event)">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+        <div class="header-actions">
+            <button id="theme-switcher">🌙</button>
+            <a href="dashboard.html" id="profileLink" class="profile-icon" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <button class="btn" id="authButton" onclick="openModal('loginModal')">Sign In</button>
+        </div>
+    </header>
+    <nav class="sub-navbar">
+        <a href="index.html">Home</a>
+        <a href="map-demo.html">Map View</a>
+        <a href="chat.html">Chats</a>
+        <a href="#" onclick="openModal('sellModal')">Sell Item</a>
+    </nav>
+
+    <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="chat-header">
+                <h3>My Chats</h3>
+            </div>
+            <div class="chat-list" id="chatList">
+                <p style="padding: 1rem; color: var(--text-secondary);">Loading chats...</p>
+            </div>
+        </div>
+        <div class="chat-main" id="chatMain" style="display: none;">
+             <div class="chat-header" id="chatHeader">
+                <!-- Active chat header will be loaded here -->
+             </div>
+             <div class="message-area" id="messageArea">
+                <!-- Messages will be loaded here -->
+             </div>
+             <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button class="btn" id="sendMessageBtn">Send</button>
+             </div>
+        </div>
+        <div class="chat-main" id="chatPlaceholder" style="display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-secondary); padding: 2rem;">
+            <div id="chatError" style="color: #721c24; background: #f8d7da; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none;"></div>
+            <p>Select a chat to start messaging.</p>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Sign In</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" placeholder="e.g., your.name@gmail.com" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="Enter password" id="loginPassword">
+            </div>
+            <button class="btn-primary" id="loginButton">Sign In</button>
+            <button class="btn-secondary" onclick="switchToSignup()">New User? Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('signupModal')">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                 <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Your full name" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label>Your Email</label>
+                    <input type="email" placeholder="e.g., your.name@gmail.com" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" placeholder="10-digit number" id="signupPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" placeholder="e.g., IIT BHU Varanasi" id="signupCollege" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="At least 6 characters" id="signupPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+                <button type="button" class="btn-secondary" onclick="switchToLogin()">Already have an account? Sign In</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Sell Item Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('sellModal')">&times;</span>
+            <h2>List Your Item</h2>
+            <form id="sellForm">
+                <div class="form-group">
+                    <label>Product Title</label>
+                    <input type="text" name="title" placeholder="e.g., MacBook Pro 2019" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Books">Books</option>
+                        <option value="Bike">Bike</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" placeholder="Describe your item..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" name="price" placeholder="Enter price" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="isNegotiable" id="negotiableChat">
+                    <label for="negotiableChat">Price is negotiable</label>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <input type="text" name="college" id="sellCollegeName" placeholder="Start typing your college name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Upload Images</label>
+                    <input type="file" accept="image/*" multiple>
+                </div>
+                <button type="submit" class="btn-primary">List Item</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="auth.js"></script>
+    <script src="product.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function switchToSignup() { closeModal('loginModal'); openModal('signupModal'); }
+        function switchToLogin() { closeModal('signupModal'); openModal('loginModal'); }
+        window.onclick = function(event) { if (event.target.classList.contains('modal')) { event.target.classList.remove('active'); } }
+        
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            window.location.href = `index.html?q=${encodeURIComponent(query)}`;
+        }
+        function handleSearchInput(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            }
+        }
+
+        const socket = io();
+        const token = getAuthToken();
+        let currentUser = null;
+        let activeChatId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/auth/verify', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await response.json();
+                if (!data.valid) throw new Error('Invalid token. Please log in again.');
+                currentUser = data.user;
+
+                await loadUserChats();
+                loadGoogleMapsForAutocomplete();
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const chatIdFromUrl = urlParams.get('id');
+                if (chatIdFromUrl) {
+                    await openChat(chatIdFromUrl);
+                }
+
+                document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+                document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+                socket.on('receiveMessage', (message) => {
+                    if (message && message.sender && activeChatId === message.chatId) {
+                        const senderId = typeof message.sender === 'object' ? message.sender._id : message.sender;
+                        if (senderId !== currentUser.userId) {
+                            appendMessage(message, false);
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                const chatError = document.getElementById('chatError');
+                chatError.textContent = `Error: ${error.message}. You will be logged out in 5 seconds.`;
+                chatError.style.display = 'block';
+                setTimeout(logout, 5000);
+            }
+        });
+
+        async function loadUserChats() {
+            const res = await fetch('/api/chat/my-chats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const chatListEl = document.getElementById('chatList');
+            if (data.success && data.chats.length > 0) {
+                chatListEl.innerHTML = data.chats.map(chat => {
+                    const otherUser = chat.buyer._id === currentUser.userId ? chat.seller : chat.buyer;
+                    return `
+                        <div class="chat-item" id="chat-item-${chat._id}" onclick="openChat('${chat._id}')">
+                            <div class="chat-item-details">
+                                <div style="font-weight: bold;">${otherUser.name}</div>
+                                <div style="font-size: 0.9rem; color: var(--text-secondary);">${chat.product.title}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                chatListEl.innerHTML = '<p style="padding: 1rem; color: var(--text-secondary);">No chats found.</p>';
+            }
+        }
+
+        async function openChat(chatId) {
+            if (activeChatId) {
+                socket.emit('leaveRoom', activeChatId);
+                const prevActive = document.getElementById(`chat-item-${activeChatId}`);
+                if (prevActive) prevActive.classList.remove('active');
+            }
+
+            activeChatId = chatId;
+            socket.emit('joinRoom', chatId);
+
+            const currentActive = document.getElementById(`chat-item-${chatId}`);
+            if (currentActive) currentActive.classList.add('active');
+
+            const res = await fetch(`/api/chat/${chatId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const chat = data.chat;
+                const otherUser = chat.buyer._id === currentUser.userId ? chat.seller : chat.buyer;
+
+                document.getElementById('chatHeader').innerHTML = `
+                    <h3>${otherUser.name}</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">${chat.product.title}</p>
+                `;
+
+                const messageArea = document.getElementById('messageArea');
+                messageArea.innerHTML = '';
+                chat.messages.forEach(msg => {
+                    appendMessage(msg, msg.sender._id === currentUser.userId);
+                });
+                
+                document.getElementById('chatMain').style.display = 'flex';
+                document.getElementById('chatPlaceholder').style.display = 'none';
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const text = messageInput.value.trim();
+            if (text && activeChatId && currentUser) {
+                const optimisticMessage = {
+                    sender: { _id: currentUser.userId, name: 'You' },
+                    text: text,
+                };
+                appendMessage(optimisticMessage, true);
+
+                socket.emit('sendMessage', {
+                    chatId: activeChatId,
+                    senderId: currentUser.userId,
+                    text: text
+                });
+                messageInput.value = '';
+            }
+        }
+        
+        function appendMessage(message, isSentByMe) {
+            const messageArea = document.getElementById('messageArea');
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message', isSentByMe ? 'sent' : 'received');
+            
+            const senderName = isSentByMe ? 'You' : (message.sender ? message.sender.name : '...');
+            
+            messageEl.innerHTML = `
+                <div class="message-sender">${senderName}</div>
+                <div>${message.text}</div>
+            `;
+            messageArea.appendChild(messageEl);
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+
+        async function loadGoogleMapsForAutocomplete() {
+            try {
+                const res = await fetch('/api/config/maps-key');
+                if (!res.ok) return;
+                const data = await res.json();
+                const apiKey = data.apiKey;
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') return;
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading Google Maps for autocomplete:', error);
+            }
+        }
+
+        function initAutocomplete() {
+            const input = document.getElementById('sellCollegeName');
+            if (input) {
+                const autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['university', 'school'],
+                    componentRestrictions: { 'country': 'in' },
+                    fields: ['name']
+                });
+            }
+        }
+
+    </script>
+</body>
+</html>
+
